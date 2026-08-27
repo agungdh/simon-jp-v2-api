@@ -1,16 +1,14 @@
-import { createClient, type RedisClientType } from "redis";
+import Redis from "ioredis";
 
 const url = (process.env.REDIS_URL ?? "").replace("valkey://", "redis://");
 
-export const valkey: RedisClientType = createClient({ url });
+export const valkey = new Redis(url, {
+  maxRetriesPerRequest: 3,
+  lazyConnect: true,
+});
 
 valkey.on("error", (err) => {
   console.error("❌ Valkey connection error:", err.message);
-});
-
-// node-redis v4 connects lazily; ensure the connection is established.
-valkey.connect().catch(() => {
-  // connection errors are surfaced via the "error" listener above
 });
 
 const SESSION_PREFIX = "session:";
@@ -19,7 +17,7 @@ export const SESSION_TTL_SECONDS = 60 * 60 * 2; // 2 jam, sliding
 const sessionKey = (token: string) => `${SESSION_PREFIX}${token}`;
 
 export async function createSession(token: string, userUuid: string) {
-  await valkey.set(sessionKey(token), userUuid, { EX: SESSION_TTL_SECONDS });
+  await valkey.set(sessionKey(token), userUuid, "EX", SESSION_TTL_SECONDS);
 }
 
 export async function getSession(token: string): Promise<string | null> {
