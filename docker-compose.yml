@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:18-alpine
+    image: postgres:18
     container_name: simonjp-postgres
     restart: always
     environment:
@@ -10,7 +10,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d simonjp"]
       interval: 10s
@@ -18,7 +18,7 @@ services:
       retries: 5
 
   valkey:
-    image: valkey/valkey:9-alpine
+    image: valkey/valkey:9
     container_name: simonjp-valkey
     restart: always
     command: ["valkey-server", "--requirepass", "admin"]
@@ -39,7 +39,7 @@ services:
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: admin
+      MINIO_ROOT_PASSWORD: admin123
     ports:
       - "127.0.0.1:9000:9000"
       - "127.0.0.1:9001:9001"
